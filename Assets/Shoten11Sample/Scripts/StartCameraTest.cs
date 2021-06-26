@@ -5,10 +5,9 @@ using UnityEngine;
 using Microsoft.Azure.Kinect.Sensor;
 using TMPro;
 
-public class NewBehaviourScript : MonoBehaviour
+public class StartCameraTest : MonoBehaviour
 {
     private Device _kinect;
-    private bool _isRunning = false;
 
     [SerializeField]
     private TextMeshPro _text;
@@ -25,11 +24,9 @@ public class NewBehaviourScript : MonoBehaviour
             CameraFPS = FPS.FPS30
         });
 
-        _isRunning = true;
-
         if(_kinect != null && _text !=null)
         {
-            _text.text = _kinect.Version.Depth.ToString();
+            _text.text = _kinect.CurrentColorResolution.ToString();
         }
 
 
@@ -37,7 +34,6 @@ public class NewBehaviourScript : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        _isRunning = false;
         if (_kinect != null)
         {
             _kinect.StopCameras();
