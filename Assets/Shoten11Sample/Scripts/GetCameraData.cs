@@ -20,6 +20,8 @@ namespace Shoten11Sample
 
         private void Start()
         {
+            // camera settings
+            
             _kinect = Device.Open();
             _kinect.StartCameras(new DeviceConfiguration
             {
@@ -32,19 +34,38 @@ namespace Shoten11Sample
 
             _isRunning = true;
 
-            var colorCalibration = _kinect.GetCalibration().ColorCameraCalibration;
-            _colorImageTexture = new Texture2D(colorCalibration.ResolutionWidth, colorCalibration.ResolutionHeight,
-                TextureFormat.BGRA32, false);
+            
+            // test plane settings
+            
+            var colorCalibration
+                = _kinect.GetCalibration().ColorCameraCalibration;
+            _colorImageTexture = new Texture2D(
+                colorCalibration.ResolutionWidth,
+                colorCalibration.ResolutionHeight,
+                TextureFormat.BGRA32, false
+            );
 
             if (_testPlane == null) return;
 
-            _testPlane.transform.localScale = new Vector3(1f, 1f,
-                (float) colorCalibration.ResolutionHeight / colorCalibration.ResolutionWidth);
-            _testPlane.GetComponent<MeshRenderer>().material.SetTexture(MainTex, _colorImageTexture);
+            _testPlane.transform.localScale
+                = new Vector3(
+                    1f, 1f,
+                    (float) colorCalibration.ResolutionHeight
+                    / colorCalibration.ResolutionWidth
+                );
+            
+            // set Texture2D to unlit material
+            _testPlane.GetComponent<MeshRenderer>()
+                .material.SetTexture(MainTex, _colorImageTexture);
 
+            // start capturing loop
             _ = Task.Run(CaptureLoop);
         }
 
+        /// <summary>
+        /// Capture color image frame from azure kienct
+        /// while running.
+        /// </summary>
         private void CaptureLoop()
         {
             while (_isRunning)
@@ -55,6 +76,9 @@ namespace Shoten11Sample
             }
         }
 
+        /// <summary>
+        /// update color texture
+        /// </summary>
         private void Update()
         {
             if (_rawColorData != null)
