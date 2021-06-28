@@ -38,11 +38,11 @@ namespace Shoten11Sample
             // test plane settings
             
             var colorCalibration
-                = _kinect.GetCalibration().ColorCameraCalibration;
+                = _kinect.GetCalibration().DepthCameraCalibration;
             _colorImageTexture = new Texture2D(
                 colorCalibration.ResolutionWidth,
                 colorCalibration.ResolutionHeight,
-                TextureFormat.BGRA32, false
+                TextureFormat.R16, false
             );
 
             if (_testPlane == null) return;
@@ -71,7 +71,7 @@ namespace Shoten11Sample
             while (_isRunning)
             {
                 using var capture = _kinect.GetCapture();
-                Image colorImage = capture.Color;
+                Image colorImage = capture.Depth;
                 _rawColorData = colorImage.Memory.ToArray();
             }
         }
