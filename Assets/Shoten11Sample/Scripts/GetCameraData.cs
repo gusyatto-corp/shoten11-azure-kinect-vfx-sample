@@ -18,10 +18,12 @@ namespace Shoten11Sample
 
         [SerializeField] private GameObject _testPlane;
 
+        private Transformation _kinectTransformation = null;
+
         private void Start()
         {
             // camera settings
-            
+
             _kinect = Device.Open();
             _kinect.StartCameras(new DeviceConfiguration
             {
@@ -34,15 +36,18 @@ namespace Shoten11Sample
 
             _isRunning = true;
 
-            
             // test plane settings
-            
-            var colorCalibration
+
+            var depthCalibration
                 = _kinect.GetCalibration().DepthCameraCalibration;
+
+            _kinectTransformation
+                = _kinect.GetCalibration().CreateTransformation();
+
             _colorImageTexture = new Texture2D(
-                colorCalibration.ResolutionWidth,
-                colorCalibration.ResolutionHeight,
-                TextureFormat.R16, false
+                depthCalibration.ResolutionWidth,
+                depthCalibration.ResolutionHeight,
+                TextureFormat.BGRA32, false
             );
 
             if (_testPlane == null) return;
@@ -50,10 +55,10 @@ namespace Shoten11Sample
             _testPlane.transform.localScale
                 = new Vector3(
                     1f, 1f,
-                    (float) colorCalibration.ResolutionHeight
-                    / colorCalibration.ResolutionWidth
+                    (float) depthCalibration.ResolutionHeight
+                    / depthCalibration.ResolutionWidth
                 );
-            
+
             // set Texture2D to unlit material
             _testPlane.GetComponent<MeshRenderer>()
                 .material.SetTexture(MainTex, _colorImageTexture);
@@ -71,7 +76,9 @@ namespace Shoten11Sample
             while (_isRunning)
             {
                 using var capture = _kinect.GetCapture();
-                Image colorImage = capture.Depth;
+                Image colorImage = 
+                    _kinectTransformation
+                        .ColorImageToDepthCamera(capture);
                 _rawColorData = colorImage.Memory.ToArray();
             }
         }
