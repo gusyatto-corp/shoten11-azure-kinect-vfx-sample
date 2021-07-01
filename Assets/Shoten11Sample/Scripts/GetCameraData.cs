@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Kinect.Sensor;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Shoten11Sample
@@ -11,14 +12,20 @@ namespace Shoten11Sample
         private bool _isRunning = false;
 
         private byte[] _rawColorData = null;
+        private byte[] _xyz = null;
 
         private readonly int MainTex = Shader.PropertyToID("_UnlitColorMap");
 
         private Texture2D _colorImageTexture = null;
+        private Texture2D _xyzImageTexture = null;
 
         [SerializeField] private GameObject _testPlane;
 
         private Transformation _kinectTransformation = null;
+
+        [SerializeField] private int w;
+        [SerializeField] private int h;
+
 
         private void Start()
         {
@@ -50,6 +57,12 @@ namespace Shoten11Sample
                 TextureFormat.BGRA32, false
             );
 
+            _xyzImageTexture = new Texture2D(
+                depthCalibration.ResolutionWidth,
+                depthCalibration.ResolutionHeight,
+                TextureFormat.RGB48, false);
+            _xyzImageTexture.wrapMode = TextureWrapMode.Repeat;
+
             if (_testPlane == null) return;
 
             _testPlane.transform.localScale
@@ -61,7 +74,7 @@ namespace Shoten11Sample
 
             // set Texture2D to unlit material
             _testPlane.GetComponent<MeshRenderer>()
-                .material.SetTexture(MainTex, _colorImageTexture);
+                .material.SetTexture(MainTex, _xyzImageTexture);
 
             // start capturing loop
             _ = Task.Run(CaptureLoop);
@@ -76,10 +89,13 @@ namespace Shoten11Sample
             while (_isRunning)
             {
                 using var capture = _kinect.GetCapture();
-                Image colorImage = 
+                Image colorImage =
                     _kinectTransformation
                         .ColorImageToDepthCamera(capture);
                 _rawColorData = colorImage.Memory.ToArray();
+
+                Image xyzImage = _kinectTransformation.DepthImageToPointCloud(capture.Depth);
+                _xyz = xyzImage.Memory.ToArray();
             }
         }
 
@@ -92,6 +108,14 @@ namespace Shoten11Sample
             {
                 _colorImageTexture.LoadRawTextureData(_rawColorData);
                 _colorImageTexture.Apply();
+            }
+
+            if (_xyz != null)
+            {
+                _xyzImageTexture.LoadRawTextureData(_xyz);
+                _xyzImageTexture.Apply();
+
+                Debug.Log(_xyzImageTexture.GetRawTextureData<Int16>().Length);
             }
         }
 
