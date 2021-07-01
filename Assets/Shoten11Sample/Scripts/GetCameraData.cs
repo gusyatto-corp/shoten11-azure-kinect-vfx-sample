@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Kinect.Sensor;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace Shoten11Sample
 {
@@ -23,7 +24,15 @@ namespace Shoten11Sample
         [SerializeField] private GameObject _testPlane;
 
         private Transformation _kinectTransformation = null;
-        
+
+        [SerializeField] private VisualEffect _vfx;
+
+        private readonly int _propertyWidth = Shader.PropertyToID("width");
+        private readonly int _propertyHeight = Shader.PropertyToID("height");
+        private readonly int _propertyColorImage = Shader.PropertyToID("colorImage");
+        private readonly int _PropertyXyzImage = Shader.PropertyToID("xyzImage");
+
+
         private void Start()
         {
             // camera settings
@@ -60,8 +69,13 @@ namespace Shoten11Sample
                 TextureFormat.RGBAFloat, false);
             _xyzImageTexture.wrapMode = TextureWrapMode.Repeat;
 
-            if (_testPlane == null) return;
+            if (_vfx == null) return;
+            _vfx.SetInt(_propertyWidth, depthCalibration.ResolutionWidth);
+            _vfx.SetInt(_propertyHeight, depthCalibration.ResolutionHeight);
+            _vfx.SetTexture(_propertyColorImage, _colorImageTexture);
+            _vfx.SetTexture(_PropertyXyzImage, _xyzImageTexture);
 
+            if (_testPlane == null) return;
             _testPlane.transform.localScale
                 = new Vector3(
                     1f, 1f,
