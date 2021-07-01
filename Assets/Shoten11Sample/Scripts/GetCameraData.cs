@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Kinect.Sensor;
 using Unity.Collections;
@@ -12,7 +13,7 @@ namespace Shoten11Sample
         private bool _isRunning = false;
 
         private byte[] _rawColorData = null;
-        private byte[] _xyz = null;
+        private Color[] _xyz = null;
 
         private readonly int MainTex = Shader.PropertyToID("_UnlitColorMap");
 
@@ -60,7 +61,7 @@ namespace Shoten11Sample
             _xyzImageTexture = new Texture2D(
                 depthCalibration.ResolutionWidth,
                 depthCalibration.ResolutionHeight,
-                TextureFormat.RGB48, false);
+                TextureFormat.RGBAFloat, false);
             _xyzImageTexture.wrapMode = TextureWrapMode.Repeat;
 
             if (_testPlane == null) return;
@@ -95,7 +96,11 @@ namespace Shoten11Sample
                 _rawColorData = colorImage.Memory.ToArray();
 
                 Image xyzImage = _kinectTransformation.DepthImageToPointCloud(capture.Depth);
-                _xyz = xyzImage.Memory.ToArray();
+                _xyz = xyzImage
+                    .GetPixels<Short3>()
+                    .ToArray()
+                    .Select(short3 => new Color(short3.X / 100.0f, -short3.Y / 100.0f, short3.Z / 100.0f))
+                    .ToArray();
             }
         }
 
@@ -112,10 +117,10 @@ namespace Shoten11Sample
 
             if (_xyz != null)
             {
-                _xyzImageTexture.LoadRawTextureData(_xyz);
+                _xyzImageTexture.SetPixels(_xyz);
                 _xyzImageTexture.Apply();
 
-                Debug.Log(_xyzImageTexture.GetRawTextureData<Int16>().Length);
+                // Debug.Log(_xyzImageTexture.GetRawTextureData<Int16>().Length);
             }
         }
 
