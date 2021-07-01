@@ -23,11 +23,7 @@ namespace Shoten11Sample
         [SerializeField] private GameObject _testPlane;
 
         private Transformation _kinectTransformation = null;
-
-        [SerializeField] private int w;
-        [SerializeField] private int h;
-
-
+        
         private void Start()
         {
             // camera settings
@@ -119,8 +115,6 @@ namespace Shoten11Sample
             {
                 _xyzImageTexture.SetPixels(_xyz);
                 _xyzImageTexture.Apply();
-
-                // Debug.Log(_xyzImageTexture.GetRawTextureData<Int16>().Length);
             }
         }
 
